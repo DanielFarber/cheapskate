@@ -45,3 +45,27 @@ class Hit(models.Model):
 			Hit(item=item,search=search).save()
 	class Meta:
 		unique_together = (('search', 'item'),)
+
+class Searcher(models.Model):
+	id = models.AutoField(primary_key=True)
+	email = models.CharField(max_length=255, unique=True)
+	notified = models.DateTimeField(null=True, auto_now=True)
+	active = models.BooleanField(default=True)
+	searches = models.ManyToManyField('Search', through='Subscription')
+	def all_current_items(self):
+		all_items = []
+		searches = self.searches.all()
+		for search in searches:
+			for item in search.items.all():
+				if item.url not in all_items and self.notified < item.gotten:
+					all_items.append(item.url)
+		return all_items
+	def __str__(self):
+		return self.email
+
+class Subscription(models.Model):
+	id = models.AutoField(primary_key=True)
+	searcher = models.ForeignKey('Searcher', null=True)
+	search = models.ForeignKey('Search', null=True)
+	def __str__(self):
+		return '%s >> %s' % (self.search.name, self.searcher.email)
