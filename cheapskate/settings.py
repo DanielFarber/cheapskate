@@ -20,7 +20,7 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 # See https://docs.djangoproject.com/en/1.11/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = os.environ['CHEAPSKATE_SECRET_KEY']
+SECRET_KEY = os.getenv('CHEAPSKATE_SECRET_KEY')
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
@@ -39,7 +39,10 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'django_extensions',
     'pollr',
-    'feedparser'
+    'feedparser',
+    'oauth2client',
+    'googleapiclient',
+    'httplib2'
 ]
 
 MIDDLEWARE = [
