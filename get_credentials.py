@@ -14,13 +14,12 @@ except ImportError:
     flags = None
 
 SCOPES = 'https://mail.google.com'
-CLIENT_ID = os.getenv('POLLR_CLIENT_ID')
-CLIENT_SECRET = os.getenv('POLLR_CLIENT_SECRET')
+CLIENT_ID = os.getenv('GOOGLE_API_CLIENT_ID')
+CLIENT_SECRET = os.getenv('GOOGLE_API_CLIENT_SECRET')
+CREDENTIALS_PATH = os.path.join(os.getcwd(), 'credentials.json')
 
 def get_credentials():
-    credential_dir = os.getcwd()
-    credential_path = os.path.join(credential_dir, 'credentials.json')
-    store = Storage(credential_path)
+    store = Storage(CREDENTIALS_PATH)
     credentials = store.get()
     if not credentials or credentials.invalid:
         flow = client.OAuth2WebServerFlow(CLIENT_ID, CLIENT_SECRET, SCOPES, 'http://localhost')
@@ -28,7 +27,7 @@ def get_credentials():
             credentials = tools.run_flow(flow, store, flags)
         else:
             credentials = tools.run_flow(flow, store)
-        print('Storing credentials to ' + credential_path)
+        print('Storing credentials to ' + CREDENTIALS_PATH)
     return credentials
 
 def run():
