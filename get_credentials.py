@@ -16,7 +16,7 @@ except ImportError:
 SCOPES = 'https://mail.google.com'
 CLIENT_ID = os.getenv('GOOGLE_API_CLIENT_ID')
 CLIENT_SECRET = os.getenv('GOOGLE_API_CLIENT_SECRET')
-CREDENTIALS_PATH = os.path.join(os.getcwd(), 'credentials.json')
+CREDENTIALS_PATH = os.path.join('/'.join(__file__.split('/')[0:-1]), 'credentials.json')
 
 def get_credentials():
     store = Storage(CREDENTIALS_PATH)
