@@ -2,6 +2,9 @@
 from __future__ import unicode_literals
 
 from django.db import models
+from datetime import datetime
+from datetime import timedelta
+import pytz
 import feedparser
 
 # Create your models here.
@@ -57,8 +60,8 @@ class Searcher(models.Model):
 		searches = self.searches.all()
 		for search in searches:
 			for item in search.items.all():
-				if item.url not in all_items and self.notified < item.gotten:
-					all_items.append(item.url)
+				if (datetime.now(pytz.utc) - timedelta(hours=2)) > item.gotten: continue
+				if item.url not in all_items and self.notified < item.gotten: all_items.append(item.url)
 		return all_items
 	def __str__(self):
 		return self.email
