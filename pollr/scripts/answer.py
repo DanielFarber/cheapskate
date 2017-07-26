@@ -2,7 +2,7 @@ from pollr import models
 from pollr.lib import gmail_service
 import base64
 import re
-from IPython import embed
+
 email_regex = "(?:[a-z0-9!#$%&'*+/=?^_`{|}~-]+(?:\.[a-z0-9!#$%&'*+/=?^_`{|}~-]+)*|\"(?:[\x01-\x08\x0b\x0c\x0e-\x1f\x21\x23-\x5b\x5d-\x7f]|\\[\x01-\x09\x0b\x0c\x0e-\x7f])*\")@(?:(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.)+[a-z0-9](?:[a-z0-9-]*[a-z0-9])?|\[(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?|[a-z0-9-]*[a-z0-9]:(?:[\x01-\x08\x0b\x0c\x0e-\x1f\x21-\x5a\x53-\x7f]|\\[\x01-\x09\x0b\x0c\x0e-\x7f])+)\])"
 service = gmail_service.get_service()
 
@@ -11,25 +11,44 @@ def get_message(id):
 
 def run():
 	message_list = service.users().messages().list(userId='me').execute()
+	if 'messages' not in message_list: return;
+	message_ids = {'ids': map(lambda m: str(m['id']), message_list['messages'])}
 	messages = map(lambda m: get_message(str(m['id'])), message_list['messages'])
 	parsed_messages = map(lambda m: parse_message(m), messages)
-	print(parsed_messages)
+	for response in parsed_messages:
+		if response['searcher'] is not None and 'active' in response:
+			response['searcher'].active = response['active']
+			response['searcher'].save()
+	service.users().messages().batchDelete(userId='me',body=message_ids).execute();
 
 def parse_message(msg):
 	output = {}
-	headers = get_headers(msg)
-	try:
-		output['from'] = get_email(headers['From'])
-	except:
-		continue
+	header_params = msg['payload']['headers']
+	headers = parse_params(header_params)
+	if 'From' in headers:
+		output['searcher'] = models.Searcher.objects.filter(email=get_email(headers['From'])).first()
+	else:
+		output['searcher'] = None
+	body = msg['payload']['body']
+	if 'data' in body:
+		lines = re.split(r'[\n\r]', base64.urlsafe_b64decode(str(body['data'])))
+		for line in lines:
+			if re.match(r'^stop', line.lower()):
+				output['active'] = False
+				break
+			if re.match(r'^start', line.lower()):
+				output['active'] = True
+				break
 	return output
 
 def get_email(txt):
 	return re.findall(email_regex, txt)[0]
 
-def get_headers(msg):
-	headers = {}
-	for header in msg['payload']['headers']:
-		headers[str(header['name'])] = str(header['value'])
-	return headers
+def parse_params(obj):
+	output = {}
+	for param in obj:
+		output[str(param['name'])] = str(param['value'])
+	return output
 
+def get_body(body):
+	pass

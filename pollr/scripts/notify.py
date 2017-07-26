@@ -3,7 +3,7 @@ from pollr.lib import gmail_service
 
 def run():
 	service = gmail_service.get_service()
-	searchers = Searcher.objects.all()
+	searchers = Searcher.objects.filter(active=True)
 	for searcher in searchers:
 		items = searcher.all_current_items()
 		if len(items) > 0:
