@@ -8,6 +8,7 @@ from oauth2client import tools
 from oauth2client.file import Storage
 from oauth2client.client import AccessTokenRefreshError
 from oauth2client.client import OAuth2WebServerFlow
+from email.mime.text import MIMEText
 
 def get_service():
 	scope = 'https://mail.google.com'
@@ -26,8 +27,7 @@ def get_service():
 	return service
 
 def prepare_message(message, recipient):
-	text = "To: " + recipient + "\n\n" + message
-	text_bytes = bytes(text)
-	b64 = base64.urlsafe_b64encode(text_bytes)
-	encoded_text = str(b64.decode('utf-8'))
+	message = MIMEText(message, 'html')
+	message['to'] = recipient
+	encoded_text = base64.urlsafe_b64encode(message.as_string())
 	return {'raw': encoded_text}

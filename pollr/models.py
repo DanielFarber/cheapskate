@@ -6,7 +6,6 @@ from datetime import datetime
 from datetime import timedelta
 import pytz
 import feedparser
-
 # Create your models here.
 
 class Search(models.Model):
@@ -22,18 +21,19 @@ class Search(models.Model):
 		rss = feedparser.parse(str(self.url))
 		entries = rss.entries
 		for entry in entries:
-			item = Item.getsert(str(entry.dc_source))
+			item = Item.getsert(url=str(entry.dc_source),title=str(entry.title))
 			Hit.passert(item, self)
 
 class Item(models.Model):
 	id = models.AutoField(primary_key=True)
 	url = models.CharField(max_length=255, unique=True, null=True)
+	title = models.TextField(null=False, default='No title')
 	gotten = models.DateTimeField(auto_now=True)
 	@staticmethod
-	def getsert(url):
+	def getsert(url,title=None):
 		item = Item.objects.filter(url=url).first()
 		if item is None:
-			item = Item(url=url)
+			item = Item(url=url,title=title)
 			item.save()
 		return item
 
@@ -61,7 +61,7 @@ class Searcher(models.Model):
 		for search in searches:
 			for item in search.items.all():
 				if (datetime.now(pytz.utc) - timedelta(hours=2)) > item.gotten: continue
-				if item.url not in all_items and self.notified < item.gotten: all_items.append(item.url)
+				if item.url not in all_items and self.notified < item.gotten: all_items.append(item)
 		return all_items
 	def __str__(self):
 		return self.email
