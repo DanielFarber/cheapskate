@@ -16,7 +16,7 @@ def get_service():
 	credentials_path = os.path.join('/'.join(__file__.split('/')[0:-3]), 'credentials.json')
 
 	flow = OAuth2WebServerFlow(client_id, client_secret, scope)
-	storage = Storage('./credentials.json')
+	storage = Storage(credentials_path)
 	credentials = storage.get()
 	if credentials is None or credentials.invalid:
 		return false
