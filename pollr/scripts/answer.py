@@ -32,13 +32,12 @@ def parse_message(msg):
 	body = msg['payload']['body']
 	if 'data' in body:
 		lines = re.split(r'[\n\r]', base64.urlsafe_b64decode(str(body['data'])))
-		for line in lines:
-			if re.match(r'^stop', line.lower()):
-				output['active'] = False
-				break
-			if re.match(r'^start', line.lower()):
-				output['active'] = True
-				break
+		parsing = parse_lines(lines)
+	elif get_parts_body(msg['payload']) is not False:
+		lines = re.split(r'[\n\r]', base64.urlsafe_b64decode(str(get_parts_body(msg['payload']))))
+		parsing = parse_lines(lines)
+	if parsing and parsing == 'active': output['active'] = True
+	elif parsing and parsing == 'inactive': output['active'] = False
 	return output
 
 def get_email(txt):
@@ -52,3 +51,17 @@ def parse_params(obj):
 
 def get_body(body):
 	pass
+
+def get_parts_body(payload):
+	if 'parts' not in payload: return False
+	if len(payload['parts']) < 1: return False
+	if 'body' not in payload['parts'][0]: return False
+	if 'data' not in payload['parts'][0]['body']: return False
+	return payload['parts'][0]['body']['data']
+
+def parse_lines(lines):
+	for line in lines:
+		if re.match(r'^stop', line.lower()):
+			return 'inactive'
+		if re.match(r'^start', line.lower()):
+			return 'active'
