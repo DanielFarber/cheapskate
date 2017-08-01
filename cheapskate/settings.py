@@ -39,10 +39,10 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'django_extensions',
     'pollr',
-    'feedparser',
     'oauth2client',
     'googleapiclient',
-    'httplib2'
+    'httplib2',
+    'bs4'
 ]
 
 MIDDLEWARE = [

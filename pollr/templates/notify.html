@@ -1,5 +1,6 @@
 {% for item in items %}
 <div>
-	<a href="{{ item.url }}">{{ item.title }}</a>
+	<a href="https://{{ item.search.locale }}.craigslist.org{{item.url }}">{{ item.title }}</a>
 </div>
+<div></div>
 {% endfor %}
